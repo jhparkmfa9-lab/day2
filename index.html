@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>픽셀 대통령 백과</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.39.3/dist/galmuri.css">
+<style>
+:root{
+  --bg:#1b1640; --bg2:#2a2160; --panel:#fdf6e3; --ink:#1b1640; --muted:#6b5f8a;
+  --accent:#ff5d8f; --accent2:#ffd23f; --accent3:#3ee0c5; --line:#1b1640;
+  --shadow:#0e0b24;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(#ffffff22 1px, transparent 1px),
+    radial-gradient(#ffffff11 1px, transparent 1px);
+  background-size:24px 24px, 13px 13px;
+  background-position:0 0, 6px 9px;
+  color:var(--panel);
+  font-family:'Galmuri11','Galmuri9','DungGeunMo',monospace;
+  min-height:100vh; overflow-x:hidden;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+header{text-align:center;margin:12px 0 28px}
+.logo{
+  display:inline-block;font-family:'Galmuri14','Galmuri11',monospace;
+  font-size:clamp(26px,5vw,46px);letter-spacing:2px;color:var(--accent2);
+  text-shadow:4px 4px 0 var(--accent),8px 8px 0 var(--shadow);
+  animation:logoBob 2.4s steps(4) infinite;
+}
+@keyframes logoBob{50%{transform:translateY(-4px)}}
+.sub{margin-top:14px;color:#cfc6ff;font-size:14px}
+.blink{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* pixel box */
+.px{
+  background:var(--panel);color:var(--ink);
+  border:4px solid var(--line);
+  box-shadow:0 0 0 4px var(--panel),0 0 0 8px var(--line),8px 8px 0 8px var(--shadow);
+  margin:8px;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px}
+.card{position:relative;padding:14px;cursor:pointer;transition:transform .12s steps(2)}
+.card:hover{transform:translate(-3px,-3px)}
+.card:focus-visible{outline:4px dashed var(--accent);outline-offset:10px}
+.badge{
+  position:absolute;top:-14px;left:12px;background:var(--accent);color:#fff;
+  border:3px solid var(--line);padding:2px 8px;font-size:12px
+}
+.badge.now{background:var(--accent3);color:var(--ink)}
+.stage{
+  height:170px;border:4px solid var(--line);position:relative;overflow:hidden;
+  image-rendering:pixelated;
+}
+.stage .ground{position:absolute;left:0;right:0;bottom:0;height:22px;background:repeating-linear-gradient(90deg,#5bbf4a 0 8px,#4aa83c 8px 16px);border-top:4px solid var(--line)}
+.stage svg.scene{position:absolute;left:50%;bottom:14px;width:240px;height:160px;margin-left:-120px;image-rendering:pixelated;shape-rendering:crispEdges;overflow:visible}
+.cloud{position:absolute;top:18px;width:36px;height:12px;background:#fff;box-shadow:8px -8px 0 #fff,16px 0 0 #fff;opacity:.9;animation:cloud 18s linear infinite}
+@keyframes cloud{from{left:-60px}to{left:110%}}
+.name{font-family:'Galmuri14','Galmuri11',monospace;font-size:24px;margin:12px 0 2px}
+.meta{font-size:12px;color:var(--muted)}
+.move{margin-top:8px;font-size:12px;background:#ffe9a8;border:3px solid var(--line);padding:6px 8px}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{
+  font:inherit;font-size:13px;cursor:pointer;border:3px solid var(--line);
+  background:var(--accent2);color:var(--ink);padding:8px 12px;
+  box-shadow:4px 4px 0 var(--line);
+}
+.btn:active{transform:translate(4px,4px);box-shadow:none}
+.btn.voice{background:var(--accent);color:#fff}
+.btn.voice.playing{background:var(--accent3);color:var(--ink)}
+.btn.voice.playing::after{content:' ■'}
+
+/* modal */
+.modal{position:fixed;inset:0;background:#0e0b24cc;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow:auto;z-index:20}
+.modal.open{display:flex}
+.sheet{width:min(980px,100%);padding:20px;position:relative;animation:pop .25s steps(3)}
+@keyframes pop{from{transform:scale(.8)}to{transform:scale(1)}}
+.close{position:absolute;top:10px;right:10px}
+.detail{display:grid;grid-template-columns:240px 1fr;gap:20px}
+@media (max-width:720px){.detail{grid-template-columns:1fr}}
+.photoBox{max-width:260px;margin:0 auto;border:4px solid var(--line);background:#222;aspect-ratio:3/4;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photoBox canvas,.photoBox img{width:100%;height:100%;image-rendering:pixelated;object-fit:cover}
+.photoBox .cap{position:absolute;bottom:0;left:0;right:0;background:#1b1640dd;color:#fff;font-size:10px;padding:3px 6px}
+.photoBox .scan{position:absolute;inset:0;background:repeating-linear-gradient(#0000 0 3px,#0002 3px 4px);pointer-events:none}
+.pxToggle{margin-top:8px;width:100%}
+h3{font-family:'Galmuri14','Galmuri11',monospace;margin:18px 0 8px;font-size:16px;display:flex;align-items:center;gap:8px}
+h3::before{content:'';width:10px;height:10px;background:var(--accent);box-shadow:2px 2px 0 var(--line)}
+ul.pix{list-style:none;padding:0;margin:0}
+ul.pix li{padding:6px 0 6px 20px;position:relative;font-size:14px;line-height:1.5;border-bottom:2px dashed #d9cfb0}
+ul.pix li::before{content:'▶';position:absolute;left:0;color:var(--accent);font-size:11px;top:8px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.info dt{color:var(--muted)}.info dd{margin:0}
+.summary{font-size:14px;line-height:1.7}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);padding:10px 12px;font-size:13px;line-height:1.6;margin-top:12px;min-height:46px}
+.bubble::after{content:'';position:absolute;left:30px;top:-12px;border:6px solid transparent;border-bottom-color:var(--line)}
+.timeline{display:flex;gap:4px;margin:6px 0 30px;overflow-x:auto;padding:8px 4px}
+.tl{flex:1;min-width:92px;text-align:center;font-size:11px;color:#cfc6ff;cursor:pointer;border:3px solid transparent;padding:6px 2px}
+.tl:hover{border-color:var(--accent2)}
+.tl b{display:block;color:var(--accent2);font-size:13px}
+footer{text-align:center;color:#9d93d6;font-size:11px;margin-top:40px;line-height:1.8}
+
+/* ===== sprite animations ===== */
+.scene .armR,.scene .armL,.scene .head,.scene .char,.scene .wheel,.scene .dog,.scene .prop{transform-box:fill-box}
+.scene .armR{transform-origin:50% 0}
+.scene .armL{transform-origin:50% 0}
+.scene .head{transform-origin:50% 100%}
+.scene .wheel{transform-origin:50% 50%}
+.talking .scene .head{animation:talk .3s steps(2) infinite}
+@keyframes talk{50%{transform:translateY(-1px)}}
+
+/* bike (노무현) */
+.m-bike .rider{animation:ride 4s steps(16) infinite alternate}
+.m-bike .wheel{animation:spin .4s steps(4) infinite}
+.m-bike .head{animation:nod 1s steps(2) infinite}
+@keyframes ride{from{transform:translateX(-12px)}to{transform:translateX(14px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes nod{50%{transform:rotate(4deg)}}
+
+/* bulldozer (이명박) */
+.m-dozer .rider{animation:push 2.4s steps(8) infinite}
+.m-dozer .armR{animation:thumb 1.2s steps(2) infinite}
+@keyframes push{0%{transform:translateX(-8px)}50%{transform:translateX(2px)}100%{transform:translateX(-8px)}}
+@keyframes thumb{50%{transform:rotate(-150deg)}}
+
+/* wave (박근혜) */
+.m-wave .armR{animation:wave .8s steps(3) infinite alternate}
+.m-wave .char{animation:sway 2s steps(4) infinite alternate}
+@keyframes wave{from{transform:rotate(-140deg)}to{transform:rotate(-190deg)}}
+@keyframes sway{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
+
+/* walk dog (문재인) */
+.m-dog .rider{animation:walkx 6s steps(24) infinite alternate}
+.m-dog .char{animation:bob .5s steps(2) infinite}
+.m-dog .dog{animation:hop .35s steps(2) infinite}
+.m-dog .armL{animation:leash 1s steps(2) infinite}
+@keyframes walkx{from{transform:translateX(-4px)}to{transform:translateX(12px)}}
+@keyframes bob{50%{transform:translateY(-2px)}}
+@keyframes hop{50%{transform:translateY(-3px)}}
+@keyframes leash{50%{transform:rotate(15deg)}}
+
+/* sing (윤석열) */
+.m-sing .char{animation:sway 1s steps(2) infinite alternate}
+.m-sing .head{animation:nod .5s steps(2) infinite}
+.m-sing .note{animation:noteUp 2.4s steps(8) infinite;opacity:0}
+.m-sing .note:nth-of-type(2){animation-delay:.8s}
+.m-sing .note:nth-of-type(3){animation-delay:1.6s}
+@keyframes noteUp{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(10px,-30px)}}
+
+/* fist (이재명) */
+.m-fist .armR{animation:cheers 1.6s steps(4) infinite}
+.m-fist .char{animation:bob .8s steps(2) infinite}
+.m-fist .bubble-p{animation:fizz 1.6s steps(6) infinite;opacity:0}
+.m-fist .bubble-p:nth-of-type(2){animation-delay:.5s}
+.m-fist .bubble-p:nth-of-type(3){animation-delay:1s}
+@keyframes cheers{0%,100%{transform:rotate(-160deg)}50%{transform:rotate(-200deg)}}
+@keyframes fizz{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-22px)}}
+
+.scene .hat,.scene .flame,.scene .dovebird{transform-box:fill-box;transform-origin:50% 100%}
+/* hat tip (이승만) */
+.m-hattip .hat{animation:hatUp 2.4s steps(1) infinite}
+.m-hattip .armR{animation:hatArm 2.4s steps(1) infinite}
+.m-hattip .char{animation:bowSm 2.4s steps(1) infinite}
+@keyframes hatUp{0%,45%{transform:none}50%,90%{transform:translateY(-5px)}}
+@keyframes hatArm{0%,45%{transform:none}50%,90%{transform:rotate(155deg)}}
+@keyframes bowSm{0%,45%{transform:none}50%,90%{transform:translateY(1px)}}
+/* tea (윤보선) */
+.m-tea .armR{animation:sip 3s steps(3) infinite}
+@keyframes sip{0%,30%{transform:rotate(30deg)}50%,80%{transform:rotate(150deg)}100%{transform:rotate(30deg)}}
+/* flag (박정희) */
+.m-flag .armR{animation:wave .6s steps(2) infinite alternate}
+.m-flag .char{animation:bob .6s steps(2) infinite}
+/* fan (최규하) */
+.m-fan .armR{animation:fanning .5s steps(2) infinite alternate}
+@keyframes fanning{from{transform:rotate(100deg)}to{transform:rotate(135deg)}}
+/* golf (전두환) */
+.m-golf .armR{animation:swing 2s steps(5) infinite}
+@keyframes swing{0%{transform:rotate(-40deg)}40%{transform:rotate(160deg)}60%{transform:rotate(-170deg)}100%{transform:rotate(-40deg)}}
+/* torch (노태우) */
+.m-torch .armR{transform:rotate(-175deg)}
+.m-torch .flame{animation:flick .25s steps(2) infinite}
+.m-torch .char{animation:bob .3s steps(2) infinite}
+.m-torch .rider{animation:walkx 3s steps(12) infinite alternate}
+@keyframes flick{50%{transform:scaleY(1.3)}}
+/* jog (김영삼) */
+.m-jog .rider{animation:walkx 2.4s steps(12) infinite alternate}
+.m-jog .char{animation:bob .25s steps(2) infinite}
+.m-jog .armR{animation:jogA .5s steps(2) infinite alternate}
+.m-jog .armL{animation:jogA .5s steps(2) infinite alternate-reverse}
+@keyframes jogA{from{transform:rotate(-35deg)}to{transform:rotate(35deg)}}
+/* dove (김대중) */
+.m-dove .armR{animation:cheerR 1s steps(2) infinite alternate}
+.m-dove .armL{animation:cheerL 1s steps(2) infinite alternate}
+.m-dove .dovebird{animation:fly 3s steps(12) infinite}
+@keyframes cheerR{from{transform:rotate(-150deg)}to{transform:rotate(-175deg)}}
+@keyframes cheerL{from{transform:rotate(150deg)}to{transform:rotate(175deg)}}
+@keyframes fly{0%{transform:translate(4px,6px);opacity:1}100%{transform:translate(26px,-14px);opacity:0}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">★ 픽셀 대통령 백과 ★</div>
+    <div class="sub">제1대 이승만 ~ 제21대 이재명 · 14명의 대통령 · 카드를 눌러 자세히 보기 <span class="blink">▮</span></div>
+  </header>
+
+  <div class="timeline" id="timeline"></div>
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    사진: 위키백과/위키미디어 공용 (실시간 불러오기, 픽셀 필터 적용) · 캐릭터는 직접 그린 픽셀 일러스트<br>
+    🔊 음성 해설은 브라우저 내장 TTS로 대통령별 톤을 달리한 <b>해설자 음성</b>이에요 (실제 본인 목소리 아님)<br>
+    콘텐츠는 멀티 에이전트 워크플로우(작성 → 사실·중립성 검수)로 만들었어요. 2026년 11월 기준.
+  </footer>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="sheet px" id="sheet"></div>
+</div>
+
+<script>
+window.PRESIDENTS = [
+ {
+  "id": "rsm",
+  "name": "이승만",
+  "hanja": "李承晩",
+  "order": "제1~3대",
+  "term": "1948.7 ~ 1960.4",
+  "born": "1875년 황해도 평산 출생 ~ 1965년 미국 하와이 호놀룰루에서 별세",
+  "party": "무소속 → 자유당",
+  "nickname": "우남(雩南)",
+  "summary": "대한민국 초대 대통령으로 정부 수립과 6·25 전쟁 시기를 이끌었다. 독립운동가이자 대한민국 임시정부 초대 대통령을 지냈다. 재임 중 발췌개헌·사사오입 개헌 등으로 장기 집권했으며, 1960년 3·15 부정선거에 항의한 4·19 혁명 이후 대통령직에서 물러났다.",
+  "keyEvents": [
+   "1948년 대한민국 정부 수립",
+   "1950년 농지개혁 시행",
+   "1950~1953년 6·25 전쟁",
+   "1953년 한미상호방위조약 체결",
+   "1960년 4·19 혁명 후 하야"
+  ],
+  "trivia": [
+   "미국 프린스턴 대학교에서 박사 학위를 받았어요.",
+   "부인 프란체스카 여사는 오스트리아 출신이었어요.",
+   "젊은 시절 배재학당에서 공부하고 신문을 만들기도 했어요."
+  ],
+  "signatureMove": "중절모를 살짝 들어 올리며 인사하기",
+  "narration": "이승만은 대한민국의 첫 번째 대통령이에요. 젊은 시절부터 독립운동에 나섰고, 미국에서 공부하며 박사 학위도 받았답니다. 1948년 대한민국 정부가 세워질 때 초대 대통령이 되었고, 6·25 전쟁이라는 어려운 시기를 겪었어요. 1960년 부정선거에 맞선 4·19 혁명이 일어나자 대통령직에서 물러났고, 이후 하와이에서 생을 마쳤답니다."
+ },
+ {
+  "id": "ybs",
+  "name": "윤보선",
+  "hanja": "尹潽善",
+  "order": "제4대",
+  "term": "1960.8 ~ 1962.3",
+  "born": "1897년 충청남도 아산 출생 ~ 1990년 서울 별세",
+  "party": "민주당",
+  "nickname": "해위(海葦)",
+  "summary": "윤보선은 4·19 혁명 뒤 의원내각제로 바뀐 제2공화국에서 국회 선출로 뽑힌 대통령입니다. 의원내각제였기 때문에 실제 행정은 국무총리(장면)가 맡았고, 대통령은 국가원수로서 상징적인 역할을 했습니다. 1962년 3월 물러난 뒤에는 야당 지도자로 활동했습니다.",
+  "keyEvents": [
+   "1960년 8월 국회에서 제4대 대통령으로 선출",
+   "의원내각제 아래 장면 국무총리 내각 출범",
+   "1961년 5·16 군사정변 발생",
+   "1962년 3월 대통령직 사임",
+   "이후 1963년·1967년 대통령 선거에 야당 후보로 출마"
+  ],
+  "trivia": [
+   "영국 에든버러 대학교에서 고고학을 공부했어요.",
+   "호 '해위'는 '바닷가의 갈대'라는 뜻이에요.",
+   "서울 안국동의 '윤보선 가옥'은 국가 지정 문화유산으로 남아 있어요."
+  ],
+  "signatureMove": "동그란 안경을 살짝 올리며 오래된 유물을 돋보기로 들여다보기",
+  "narration": "윤보선 대통령은 1897년 충청남도 아산에서 태어났어요. 영국 에든버러 대학교에서 고고학을 공부한 학자 같은 분이었답니다. 4·19 혁명 뒤 1960년, 국회에서 제4대 대통령으로 뽑혔어요. 그때는 의원내각제여서 나라 살림은 국무총리가 맡고, 대통령은 나라를 대표하는 역할을 했지요. 1962년에 물러난 뒤에도 야당 지도자로 오랫동안 활동했답니다."
+ },
+ {
+  "id": "pch",
+  "name": "박정희",
+  "hanja": "朴正熙",
+  "order": "제5~9대",
+  "term": "1963.12 ~ 1979.10",
+  "born": "1917년 경상북도 선산군(현 구미시) 출생 ~ 1979년 서거",
+  "party": "민주공화당",
+  "nickname": "산업화 시대의 대통령",
+  "summary": "1961년 5·16 군사정변 뒤 국가재건최고회의 의장을 지냈고, 1963년 대통령에 당선되어 약 16년간 재임했습니다. 경제개발 5개년 계획 등으로 급속한 산업화와 경제성장을 이끌었다는 평가를 받는 한편, 유신체제 등 장기 집권과 민주주의·인권 제한에 대한 비판도 받습니다. 1979년 10·26 사건으로 서거했습니다.",
+  "keyEvents": [
+   "경제개발 5개년 계획 추진",
+   "1965년 한일 국교 정상화",
+   "1970년 경부고속도로 개통",
+   "1970년 새마을운동 시작",
+   "1972년 10월 유신 선포"
+  ],
+  "trivia": [
+   "대통령이 되기 전 경북 문경에서 초등학교 교사로 일한 적이 있어요.",
+   "막걸리를 즐겨 마신 것으로 알려져 있어요.",
+   "새마을운동 노래 '새마을 노래'를 직접 작사·작곡했다고 전해져요."
+  ],
+  "signatureMove": "선글라스를 쓰고 밀짚모자를 쓴 채 논에서 모내기를 하는 동작",
+  "narration": "박정희 대통령은 1917년 경상북도 선산에서 태어났어요. 1961년 5·16 군사정변 이후 1963년 대통령이 되어 약 16년 동안 나라를 이끌었답니다. 재임 중 경부고속도로를 만들고 새마을운동을 펼치는 등 빠른 경제성장을 추진했어요. 한편 유신체제로 장기 집권하며 민주주의를 제한했다는 비판도 받고 있지요. 1979년 10·26 사건으로 세상을 떠났고, 오늘날까지 다양한 평가가 함께하는 인물이에요."
+ },
+ {
+  "id": "cgh",
+  "name": "최규하",
+  "hanja": "崔圭夏",
+  "order": "제10대",
+  "term": "1979.12 ~ 1980.8",
+  "born": "1919년 강원도 원주 출생 ~ 2006년 별세",
+  "party": "무소속",
+  "nickname": "외교관 출신 대통령",
+  "summary": "최규하는 외교관 출신으로 외무부 장관과 국무총리를 지냈습니다. 1979년 10·26 사태 뒤 대통령 권한대행을 맡았고, 같은 해 12월 통일주체국민회의에서 제10대 대통령으로 선출되었습니다. 혼란스러운 정국 속에서 약 8개월 만인 1980년 8월에 물러났습니다.",
+  "keyEvents": [
+   "1979년 10·26 사태 이후 대통령 권한대행 취임",
+   "1979년 12월 통일주체국민회의에서 제10대 대통령 선출",
+   "긴급조치 제9호 해제",
+   "1979년 12·12 군사반란 발생",
+   "1980년 5·18 민주화운동 발생 후 같은 해 8월 사임"
+  ],
+  "trivia": [
+   "일제강점기에 일본에서 공부했고, 광복 후 외교관이 되어 오랫동안 외교 분야에서 일했어요.",
+   "검소한 생활로 유명해서 오래된 선풍기와 연탄 난로를 아껴 썼다는 이야기가 전해져요.",
+   "재임 기간이 약 8개월로, 역대 대통령 가운데 짧은 편에 속해요."
+  ],
+  "signatureMove": "오래된 선풍기 앞에서 서류를 꼼꼼히 읽으며 고개를 끄덕이기",
+  "narration": "최규하 대통령은 강원도 원주에서 태어난 외교관 출신 대통령이에요. 외무부 장관과 국무총리를 지낸 뒤, 1979년 10·26 사태 이후 나라를 임시로 이끄는 권한대행을 맡았어요. 같은 해 12월 제10대 대통령으로 선출되었지만, 정국이 무척 혼란스러운 시기였어요. 결국 약 8개월 만인 1980년 8월에 대통령 자리에서 물러났어요. 평소 아주 검소하게 생활한 것으로도 잘 알려져 있답니다."
+ },
+ {
+  "id": "cdh",
+  "name": "전두환",
+  "hanja": "全斗煥",
+  "order": "제11~12대",
+  "term": "1980.9 ~ 1988.2",
+  "born": "1931년 경상남도 합천 출생 ~ 2021년 서울 사망",
+  "party": "민주정의당",
+  "nickname": "5공화국 대통령",
+  "summary": "육군 장교 출신으로 1979년 12·12 군사반란과 1980년 5·17 비상계엄 확대를 거쳐 권력을 잡고, 간접선거로 제11·12대 대통령이 되었습니다. 재임 중 물가 안정과 경제 성장이 있었지만, 5·18 민주화운동 유혈 진압 등으로 퇴임 후 1997년 대법원에서 반란·내란 등의 혐의로 무기징역이 확정되었고 같은 해 특별사면되었습니다.",
+  "keyEvents": [
+   "1979년 12·12 군사반란, 1980년 5·17 비상계엄 전국 확대",
+   "1980년 5·18 광주 민주화운동 무력 진압",
+   "1982년 야간 통행금지 해제, 1983년 교복·두발 자율화 시행",
+   "1986 서울 아시안게임 개최 및 1988 서울 올림픽 유치(1981)",
+   "1987년 6월 민주항쟁 이후 6·29 선언으로 대통령 직선제 개헌"
+  ],
+  "trivia": [
+   "경남 합천 출신으로 육군사관학교 11기 졸업생이에요.",
+   "육사 시절 축구부 골키퍼로 활동했다고 알려져 있어요.",
+   "그의 재임 시절 프로야구(1982)와 프로축구(1983)가 출범했어요."
+  ],
+  "signatureMove": "군인 출신답게 똑바로 서서 힘차게 거수경례하기",
+  "narration": "전두환 전 대통령은 1931년 경상남도 합천에서 태어난 군인 출신 정치인이에요. 1979년 12·12 군사반란과 이듬해 비상계엄 확대를 거쳐 권력을 잡았고, 1980년부터 1988년까지 제11대와 제12대 대통령을 지냈어요. 재임 중 야간 통행금지가 풀리고 프로야구가 시작되었으며, 서울 올림픽도 유치되었답니다. 하지만 5·18 민주화운동 진압 등으로 퇴임 후 재판을 받아 1997년 무기징역이 확정되었고, 같은 해 특별사면되었어요. 그는 2021년 세상을 떠났습니다."
+ },
+ {
+  "id": "rtw",
+  "name": "노태우",
+  "hanja": "盧泰愚",
+  "order": "제13대",
+  "term": "1988.2 ~ 1993.2",
+  "born": "1932년 경상북도 달성군 공산면(현 대구광역시 동구) 출생 ~ 2021년 사망",
+  "party": "민주정의당 → 민주자유당",
+  "nickname": "보통사람",
+  "summary": "노태우는 육군 장성 출신으로, 1987년 6·29 선언을 발표한 뒤 직선제로 치러진 대통령 선거에서 당선되었습니다. 재임 중에는 서울 올림픽을 개최하고 북방외교를 펼쳐 소련·중국과 수교했습니다. 퇴임 후 12·12 군사반란과 비자금 사건으로 기소되어 대법원에서 유죄 판결을 받았고, 1997년 특별사면되었습니다.",
+  "keyEvents": [
+   "1988 서울 올림픽 개최",
+   "북방외교 추진: 1990년 소련 수교, 1992년 중국 수교",
+   "1991년 남북한 유엔 동시 가입",
+   "1991년 남북기본합의서 채택",
+   "1990년 3당 합당으로 민주자유당 출범"
+  ],
+  "trivia": [
+   "선거 때 스스로를 '보통사람'이라고 부르며 친근한 이미지를 내세웠어요.",
+   "육군사관학교 11기로, 같은 기수 동기 중에 전두환 전 대통령이 있었어요.",
+   "서울 올림픽 개막식에서 대통령으로서 개회를 선언했어요."
+  ],
+  "signatureMove": "엄지를 척 들고 \"보통사람입니다!\" 하며 환하게 웃기",
+  "narration": "이번에 만나볼 인물은 제13대 대통령 노태우예요. 1987년 6·29 선언 뒤 국민이 직접 뽑은 선거에서 당선되었고, 자신을 '보통사람'이라고 불렀어요. 재임 중에는 1988년 서울 올림픽이 열렸고, 소련·중국과 수교하는 북방외교를 펼쳤답니다. 1991년에는 남북한이 함께 유엔에 가입했어요. 퇴임 뒤에는 12·12 사건과 비자금 문제로 재판을 받아 유죄가 확정되었고, 이후 특별사면되었어요."
+ },
+ {
+  "id": "kys",
+  "name": "김영삼",
+  "hanja": "金泳三",
+  "order": "제14대",
+  "term": "1993.2 ~ 1998.2",
+  "born": "1927년 경상남도 거제 출생 ~ 2015년 별세",
+  "party": "민주자유당 → 신한국당",
+  "nickname": "YS",
+  "summary": "김영삼은 32년 만에 처음으로 군인 출신이 아닌 민간인 대통령이 되어 '문민정부'를 열었습니다. 금융실명제를 도입하고 하나회를 정리하는 등 여러 개혁을 추진했습니다. 임기 말인 1997년에는 외환위기를 맞아 IMF에 구제금융을 요청했습니다.",
+  "keyEvents": [
+   "금융실명제 전격 실시 (1993)",
+   "군 사조직 하나회 해체",
+   "공직자 재산 공개 제도화",
+   "OECD 가입 (1996)",
+   "외환위기와 IMF 구제금융 요청 (1997)"
+  ],
+  "trivia": [
+   "26세에 국회의원에 당선되어 역대 최연소 국회의원 기록을 세웠어요.",
+   "아침 조깅을 아주 좋아해서 청와대에서도 매일 달렸대요.",
+   "'닭의 목을 비틀어도 새벽은 온다'는 말로 유명해요."
+  ],
+  "signatureMove": "조깅복 차림으로 힘차게 아침 조깅을 하며 손을 흔든다",
+  "narration": "김영삼 대통령은 경상남도 거제에서 태어나 스물여섯 살에 최연소 국회의원이 되었어요. 1993년 제14대 대통령이 되며 '문민정부' 시대를 열었답니다. 재임 중 금융실명제를 도입하고 공직자 재산 공개를 제도화하는 등 많은 개혁을 펼쳤어요. 1996년에는 OECD에 가입했지만, 1997년 외환위기로 큰 어려움을 겪기도 했어요. 매일 아침 조깅을 즐긴 부지런한 대통령으로도 기억되고 있답니다."
+ },
+ {
+  "id": "kdj",
+  "name": "김대중",
+  "hanja": "金大中",
+  "order": "제15대",
+  "term": "1998.2 ~ 2003.2",
+  "born": "1924년 전라남도 신안군 하의도 출생 ~ 2009년 서거",
+  "party": "새정치국민회의 (이후 새천년민주당)",
+  "nickname": "DJ",
+  "summary": "김대중은 대한민국 제15대 대통령으로, 선거를 통해 여야 간 정권 교체를 처음으로 이룬 대통령이에요. 외환위기 극복에 힘썼고 남북 정상회담을 열었으며, 2000년 한국인 최초로 노벨평화상을 받았어요.",
+  "keyEvents": [
+   "IMF 외환위기 극복과 구조조정 추진",
+   "대북 화해협력 정책(햇볕정책) 추진",
+   "2000년 첫 남북 정상회담과 6·15 남북공동선언",
+   "2000년 노벨평화상 수상",
+   "2002 한일 월드컵 공동 개최"
+  ],
+  "trivia": [
+   "고향은 전라남도 신안의 섬, 하의도예요.",
+   "영문 이름 머리글자를 딴 'DJ'라는 별명으로 널리 불렸어요.",
+   "책 읽기를 무척 좋아해서 독서광으로 알려졌고, 초고속 인터넷 보급에도 힘썼어요."
+  ],
+  "signatureMove": "두 손을 번쩍 들어 활짝 웃으며 인사하기",
+  "narration": "이번에 소개할 인물은 제15대 대통령 김대중이에요. 전라남도의 작은 섬 하의도에서 태어났고, 'DJ'라는 별명으로 불렸답니다. 1998년 대통령이 되었을 때 나라는 외환위기라는 큰 어려움을 겪고 있었고, 국민과 함께 위기 극복에 나섰어요. 2000년에는 처음으로 남북 정상회담을 열었고, 그해 한국인 최초로 노벨평화상을 받았어요. 2002년 한일 월드컵도 그의 임기 중에 열린 큰 행사였답니다."
+ },
+ {
+  "id": "rmh",
+  "name": "노무현",
+  "hanja": "盧武鉉",
+  "order": "제16대",
+  "term": "2003.2 ~ 2008.2",
+  "born": "1946년 경상남도 김해 출생 ~ 2009년 사망",
+  "party": "새천년민주당 → 열린우리당 (2007년 탈당 후 무소속)",
+  "nickname": "바보 노무현",
+  "summary": "상고를 졸업한 뒤 독학으로 사법시험에 합격해 판사와 인권 변호사로 활동했고, 국회의원을 거쳐 제16대 대통령이 되었습니다. 재임 중 권위주의 탈피와 지역 균형 발전, 참여 민주주의를 강조했습니다. 퇴임 후에는 고향 봉하마을로 돌아가 생활했습니다.",
+  "keyEvents": [
+   "2004년 국회의 탄핵소추안 가결, 같은 해 헌법재판소 기각으로 직무 복귀",
+   "행정중심복합도시(세종시) 건설 추진 등 국가균형발전 정책",
+   "한·미 자유무역협정(FTA) 타결(2007)",
+   "2007년 평양에서 제2차 남북정상회담 개최",
+   "이라크 파병 결정과 용산 미군기지 이전 합의"
+  ],
+  "trivia": [
+   "고등학교 졸업 후 독학으로 1975년 사법시험에 합격했어요.",
+   "퇴임 후 봉하마을에서 자전거를 타고 손녀를 태워 다니는 모습이 사진으로 알려졌어요.",
+   "지역주의 극복을 내걸고 부산에서 여러 번 출마해 낙선하면서 '바보 노무현'이라는 별명을 얻었어요."
+  ],
+  "signatureMove": "밀짚모자를 쓰고 자전거를 타며 손을 흔들기",
+  "narration": "노무현 전 대통령은 1946년 경상남도 김해에서 태어났어요. 고등학교를 졸업한 뒤 혼자 공부해서 사법시험에 합격했고, 인권 변호사로 활동했답니다. 2003년 제16대 대통령이 되어 지역 균형 발전과 국민 참여를 강조했어요. 2007년에는 평양에서 남북정상회담을 열기도 했지요. 퇴임 후에는 고향 봉하마을로 돌아가 자전거를 타며 이웃들과 소박하게 지냈답니다."
+ },
+ {
+  "id": "lmb",
+  "name": "이명박",
+  "hanja": "李明博",
+  "order": "제17대",
+  "term": "2008.2 ~ 2013.2",
+  "born": "1941년 일본 오사카 출생 (경북 포항에서 성장)",
+  "party": "한나라당 (2012년 새누리당으로 당명 변경)",
+  "nickname": "불도저",
+  "summary": "현대건설 사원으로 시작해 30대에 사장이 된 기업인 출신 정치인으로, 국회의원과 서울특별시장을 거쳐 제17대 대통령이 되었다. 재임 중 '실용'과 경제 성장을 내세워 글로벌 금융위기 대응, 찬반 논란이 컸던 4대강 사업, G20 서울 정상회의 개최 등을 추진했다. 퇴임 후 다스 자금 횡령과 뇌물 수수 혐의로 2020년 징역 17년이 확정되어 수감되었고, 2022년 말 특별사면되었다.",
+  "keyEvents": [
+   "2008년 글로벌 금융위기 대응 (한미 통화스와프 체결 등)",
+   "4대강 살리기 사업 추진 (환경·예산 문제로 찬반 논란)",
+   "2010년 G20 서울 정상회의 개최",
+   "한미 FTA 추가 협상 타결(2010) 및 발효(2012)",
+   "2018 평창 동계올림픽 유치 확정(2011)"
+  ],
+  "trivia": [
+   "어린 시절 가정 형편이 어려워 뻥튀기와 김밥 등을 팔며 학업을 이어갔다.",
+   "현대건설에 입사해 35세 무렵 사장에 올라 '샐러리맨 신화'로 불렸다.",
+   "서울시장 시절 청계천 복원과 버스 중앙차로 체계 개편을 추진했다."
+  ],
+  "signatureMove": "안전모를 쓰고 작은 불도저를 힘차게 운전하며 엄지를 척 올리기",
+  "narration": "이명박 전 대통령은 제17대 대한민국 대통령이에요. 어려운 어린 시절을 보낸 뒤 건설회사에 들어가 젊은 나이에 사장이 되어 '불도저'라는 별명을 얻었답니다. 서울시장 때는 청계천을 다시 흐르게 만드는 복원 사업으로 이름을 알렸어요. 대통령이 된 뒤에는 세계 금융위기에 대응하고, 서울에서 G20 정상회의를 열었으며, 찬반 논란 속에 4대강 사업도 추진했지요. 퇴임 후에는 재판을 받아 유죄가 확정되었고, 이후 특별사면을 받았답니다."
+ },
+ {
+  "id": "pgh",
+  "name": "박근혜",
+  "hanja": "朴槿惠",
+  "order": "제18대",
+  "term": "2013.2 ~ 2017.3",
+  "born": "1952년 2월 2일, 대구",
+  "party": "새누리당",
+  "nickname": "선거의 여왕",
+  "summary": "대한민국 첫 여성 대통령이자 박정희 전 대통령의 딸이다. 국회의원과 한나라당 대표, 새누리당 비상대책위원장을 거쳐 2012년 대선에서 당선되었다. 2017년 3월 헌법재판소의 탄핵 인용 결정으로 파면되었고, 이후 징역형이 확정되었다가 2021년 12월 특별사면되었다.",
+  "keyEvents": [
+   "창조경제 정책 추진",
+   "공무원연금 개혁",
+   "2014년 세월호 참사",
+   "2015년 한일 위안부 합의",
+   "2017년 헌법재판소 탄핵 인용으로 파면"
+  ],
+  "trivia": [
+   "대학(서강대)에서 전자공학을 전공한 공학도 출신이다.",
+   "어머니 육영수 여사 서거 후 한동안 퍼스트레이디 역할을 했다.",
+   "2006년 지방선거 유세 중 피습을 당한 뒤 회복하며 남긴 '대전은요?'라는 말이 화제가 되었다."
+  ],
+  "signatureMove": "단정한 올림머리를 하고 두 손을 모아 공손히 인사하기",
+  "narration": "박근혜 전 대통령은 대한민국 제18대 대통령으로, 우리나라 첫 여성 대통령이에요. 1952년 대구에서 태어났고, 박정희 전 대통령의 딸이기도 해요. 여러 선거에서 승리해 '선거의 여왕'이라는 별명을 얻었답니다. 재임 중에는 창조경제를 내세웠고, 세월호 참사 같은 큰 일도 겪었어요. 2017년 헌법재판소의 탄핵 결정으로 임기를 마치지 못했고, 2021년 특별사면을 받았어요."
+ },
+ {
+  "id": "mji",
+  "name": "문재인",
+  "hanja": "文在寅",
+  "order": "제19대",
+  "term": "2017.5 ~ 2022.5",
+  "born": "1953년 경상남도 거제 출생",
+  "party": "더불어민주당",
+  "nickname": "이니",
+  "summary": "인권변호사로 일하다 노무현 정부에서 대통령비서실장을 지냈습니다. 박근혜 대통령 파면 뒤 2017년 5월 조기 대선에서 당선되어 인수위원회 없이 곧바로 취임했습니다. 재임 중 남북·북미 정상회담과 코로나19 대응 등이 주요 과제였습니다.",
+  "keyEvents": [
+   "2018년 판문점 등에서 세 차례 남북정상회담 개최",
+   "2018 평창 동계올림픽 개최",
+   "최저임금 인상과 소득주도성장 정책 추진",
+   "코로나19 대응(이른바 K-방역)과 재난지원금 지급",
+   "고위공직자범죄수사처(공수처) 설치"
+  ],
+  "trivia": [
+   "경희대 재학 중 학생운동으로 구속된 적이 있고, 군 복무는 특전사에서 했어요.",
+   "반려견 마루·토리, 반려묘 찡찡이, 북한에서 선물받은 풍산개 곰이·송강 등 동물 가족으로 유명했어요.",
+   "퇴임 후 경남 양산 평산마을에 살며 평산책방이라는 작은 책방을 열었어요."
+  ],
+  "signatureMove": "반려견과 나란히 산책하다가 책 한 권을 펼쳐 들고 미소 짓기",
+  "narration": "문재인 대통령은 1953년 경상남도 거제에서 태어났어요. 인권변호사로 일하다가 2017년 5월, 제19대 대통령이 되었답니다. 재임 기간에는 남북정상회담이 열렸고, 평창 동계올림픽과 코로나19 대응 같은 큰일들도 있었어요. 동물을 무척 좋아해서 강아지와 고양이 가족이 많았다고 해요. 퇴임 뒤에는 경남 양산 평산마을에서 작은 책방을 열고 지내고 있답니다."
+ },
+ {
+  "id": "ysy",
+  "name": "윤석열",
+  "hanja": "尹錫悅",
+  "order": "제20대",
+  "term": "2022.5 ~ 2025.4",
+  "born": "1960년 12월 18일 서울 출생",
+  "party": "국민의힘 (2025년 5월 탈당)",
+  "nickname": "검사 출신 대통령",
+  "summary": "윤석열은 검사로 일하다 검찰총장을 지낸 뒤 정치에 뛰어들어 2022년 제20대 대통령으로 당선되었다. 2024년 12월 비상계엄을 선포했다가 국회의 해제 요구로 해제되었고, 이후 국회에서 탄핵소추되었다. 2025년 4월 헌법재판소의 탄핵 인용 결정으로 대통령직에서 물러났으며, 이후 내란 혐의 등으로 재판을 받았다.",
+  "keyEvents": [
+   "2022년 대통령 집무실을 청와대에서 용산으로 옮기고 청와대를 국민에게 개방",
+   "2023년 한일 관계 개선 추진 및 한미일 캠프 데이비드 정상회의 참석",
+   "2023년 미국 국빈 방문 및 워싱턴 선언 발표",
+   "2024년 12월 3일 비상계엄 선포, 국회의 해제 요구 의결 후 약 6시간 만에 해제",
+   "2025년 4월 4일 헌법재판소의 탄핵 인용으로 파면"
+  ],
+  "trivia": [
+   "강아지와 고양이를 여러 마리 키우는 소문난 반려동물 애호가예요.",
+   "2023년 미국 백악관 국빈 만찬에서 팝송 'American Pie'를 불러 화제가 되었어요.",
+   "사법시험에 여러 번 도전한 끝에 합격한 것으로 알려져 있어요."
+  ],
+  "signatureMove": "마이크를 잡고 노래 한 소절을 부른 뒤 강아지를 쓰다듬기",
+  "narration": "윤석열은 대한민국의 제20대 대통령이에요. 오랫동안 검사로 일했고, 검찰총장을 지낸 뒤 2022년에 대통령이 되었어요. 대통령 집무실을 용산으로 옮기고, 청와대를 모두가 구경할 수 있게 열었답니다. 2024년 12월 비상계엄을 선포한 일로 탄핵소추되었고, 2025년 4월 헌법재판소 결정으로 대통령직에서 물러났어요. 평소에는 강아지와 고양이를 무척 아끼는 반려동물 가족으로도 알려져 있답니다."
+ },
+ {
+  "id": "ljm",
+  "name": "이재명",
+  "hanja": "李在明",
+  "order": "제21대",
+  "term": "2025.6 ~ 현직",
+  "born": "1963년 12월 22일 (음력, 호적상 1964년 12월 22일), 경상북도 안동",
+  "party": "더불어민주당",
+  "nickname": "소년공 출신 대통령",
+  "summary": "어린 시절 공장에서 일하며 검정고시로 학업을 이어 간 소년공 출신으로, 변호사를 거쳐 성남시장, 경기도지사, 더불어민주당 대표를 지냈습니다. 2025년 6월 3일 조기 대선에서 당선되어 다음 날인 6월 4일 제21대 대통령으로 취임했습니다.",
+  "keyEvents": [
+   "소년공 생활 후 검정고시, 1982년 중앙대 법대 진학",
+   "1986년 사법시험 합격, 인권변호사 활동",
+   "2010년 성남시장 당선, 2018년 경기도지사 당선",
+   "2022년 8월 더불어민주당 대표 선출",
+   "2025년 6월 4일 제21대 대통령 취임 (당선 확정 즉시 임기 시작)"
+  ],
+  "trivia": [
+   "소년공 시절 프레스 사고로 왼팔에 장애가 남았다",
+   "검정고시로 중학교와 고등학교 과정을 마쳤다",
+   "인수위원회 없이 당선 확정 직후 바로 임기를 시작했다"
+  ],
+  "signatureMove": "작업복 소매를 걷어붙이고 '일 하자!' 하며 주먹을 불끈 쥔다",
+  "narration": "이번 인물은 제21대 대통령, 이재명입니다. 그는 어린 시절 공장에서 일하던 소년공이었고, 검정고시로 공부를 이어 가 변호사가 되었습니다. 이후 성남시장과 경기도지사, 더불어민주당 대표를 차례로 지냈죠. 2025년 6월 조기 대선에서 당선되어, 인수위원회 없이 바로 다음 날 취임했습니다. 지금 이 순간에도 임기를 이어 가고 있는 현직 대통령입니다!"
+ }
+];
+</script>
+<script>
+/* ---------- look & feel per president ---------- */
+const LOOK = {
+  rmh:{wiki:'노무현',move:'bike',moveLabel:'밀짚모자 쓰고 봉하마을 자전거 타기',hair:'side',hairC:'#3a3a3a',suit:'#6b8e4e',tie:'#f2c14e',skin:'#f3c9a0',acc:'straw',bg:'#a8e6ff',voice:{pitch:.85,rate:1.0}},
+  lmb:{wiki:'이명박',move:'dozer',moveLabel:'"불도저" 별명처럼 안전모 쓰고 밀어붙이기',hair:'receding',hairC:'#2b2b2b',suit:'#2f4a7a',tie:'#c0392b',skin:'#f0c39a',acc:'hardhat',bg:'#ffe0a3',voice:{pitch:.95,rate:1.12}},
+  pgh:{wiki:'박근혜',move:'wave',moveLabel:'올림머리에 단정하게 손 흔들기',hair:'updo',hairC:'#2e2420',suit:'#c23b4e',tie:null,skin:'#f6d2b5',acc:null,bg:'#ffd1dc',voice:{pitch:1.25,rate:.92}},
+  mji:{wiki:'문재인',move:'dog',moveLabel:'반려견 토리와 산책하기',hair:'gray',hairC:'#c9c9c9',suit:'#24365c',tie:'#5b8bd9',skin:'#f1c7a0',acc:null,bg:'#c8f2c0',voice:{pitch:.8,rate:.9}},
+  ysy:{wiki:'윤석열',move:'sing',moveLabel:'마이크 잡고 "아메리칸 파이" 열창',hair:'side',hairC:'#1e1e1e',suit:'#1f2a44',tie:'#d64545',skin:'#f0c29b',acc:'mic',bg:'#d6ccff',voice:{pitch:.75,rate:1.0}},
+  ljm:{wiki:'이재명',move:'fist',moveLabel:'소매 걷어붙이고 "일 하자!" 주먹 불끈',hair:'side',hairC:'#222',suit:'#1d3b6b',tie:'#2f80ed',skin:'#f2c8a2',acc:'glasses',bg:'#b8f0ff',voice:{pitch:1.0,rate:1.08}},
+};
+Object.assign(LOOK,{
+  rsm:{wiki:'이승만',move:'hattip',moveLabel:'중절모 살짝 들어 올리며 인사',hair:'gray',hairC:'#f2f2f2',suit:'#3d3d4d',tie:'#8b1e2d',skin:'#f1cfae',acc:'fedora',bg:'#e8dcc4',voice:{pitch:.7,rate:.85}},
+  ybs:{wiki:'윤보선',move:'tea',moveLabel:'영국 신사처럼 차 한 잔 홀짝',hair:'side',hairC:'#555',suit:'#4a3b2a',tie:'#2e6b4e',skin:'#f1cba6',acc:'glasses',bg:'#f6e7c8',voice:{pitch:.8,rate:.88}},
+  pch:{wiki:'박정희',move:'flag',moveLabel:'선글라스 쓰고 새마을 깃발 흔들기',hair:'side',hairC:'#1a1a1a',suit:'#5b6b3a',tie:'#222',skin:'#e9bb92',acc:'shades',bg:'#d9f0c0',voice:{pitch:.85,rate:1.0}},
+  cgh:{wiki:'최규하',move:'fan',moveLabel:'에어컨 대신 부채로 살랑살랑',hair:'gray',hairC:'#9a9a9a',suit:'#59607a',tie:'#7a5c2e',skin:'#f1c9a4',acc:'glasses',bg:'#d8eef7',voice:{pitch:.8,rate:.85}},
+  cdh:{wiki:'전두환',move:'golf',moveLabel:'골프채 들고 나이스 샷',hair:'bald',hairC:'#333',suit:'#3a3a52',tie:'#6a1b9a',skin:'#efbf98',acc:null,bg:'#cdeccd',voice:{pitch:.8,rate:1.0}},
+  rtw:{wiki:'노태우',move:'torch',moveLabel:'88 서울올림픽 성화 들고 달리기',hair:'side',hairC:'#2a2a2a',suit:'#2c4f8a',tie:'#d64545',skin:'#f0c39b',acc:null,bg:'#fff2b8',voice:{pitch:.9,rate:.95}},
+  kys:{wiki:'김영삼',move:'jog',moveLabel:'트레이닝복 입고 새벽 조깅',hair:'side',hairC:'#3a3a3a',suit:'#2f6fd6',tie:null,skin:'#f1c49c',acc:null,bg:'#ffe1c4',voice:{pitch:.95,rate:1.1}},
+  kdj:{wiki:'김대중',move:'dove',moveLabel:'두 손 번쩍! 평화의 비둘기 날리기',hair:'gray',hairC:'#d0d0d0',suit:'#2b3d6b',tie:'#e07a2e',skin:'#f0c7a2',acc:null,bg:'#d6ecff',voice:{pitch:.75,rate:.85}},
+});
+const ORDER = ['rsm','ybs','pch','cgh','cdh','rtw','kys','kdj','rmh','lmb','pgh','mji','ysy','ljm'];
+
+/* ---------- pixel sprite builder ---------- */
+const K='#1b1640';
+function R(x,y,w,h,c,cls=''){return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"${cls?` class="${cls}"`:''}/>`}
+function hair(L){
+  const c=L.hairC;
+  switch(L.hair){
+    case 'gray': return R(2,1,12,4,c)+R(2,5,2,4,c)+R(12,5,2,4,c)+R(4,5,4,1,c);
+    case 'receding': return R(3,2,10,2,c)+R(2,4,2,4,c)+R(12,4,2,4,c);
+    case 'updo': return R(5,-1,6,3,c)+R(2,2,12,3,c)+R(2,5,2,7,c)+R(12,5,2,7,c)+R(3,5,5,1,c)+R(4,1,8,1,c);
+    case 'bald': return R(2,5,1,3,c)+R(13,5,1,3,c)+R(3,4,1,2,c)+R(12,4,1,2,c);
+    default: return R(2,2,12,3,c)+R(2,5,2,3,c)+R(12,5,2,2,c)+R(3,5,6,1,c);
+  }
+}
+function head(L){
+  let s = R(3,2,10,1,K)+R(2,3,12,10,K)+R(3,13,10,1,K)+R(3,3,10,10,L.skin);
+  s += hair(L);
+  s += R(5,8,1,2,K)+R(10,8,1,2,K)+R(4,10,2,1,'#ff9aa8')+R(10,10,2,1,'#ff9aa8')+R(7,11,2,1,'#b0414f');
+  if(L.acc==='glasses'){ const K='#7a6a9a'; s+=R(4,7,3,1,K)+R(4,9,3,1,K)+R(4,7,1,3,K)+R(6,7,1,3,K)+R(9,7,3,1,K)+R(9,9,3,1,K)+R(9,7,1,3,K)+R(11,7,1,3,K)+R(7,8,2,1,K); }
+  if(L.acc==='shades'){ s+=R(4,8,3,2,K)+R(9,8,3,2,K)+R(7,8,2,1,K)+R(4,8,1,1,'#666')+R(9,8,1,1,'#666'); }
+  if(L.acc==='fedora'){ s+=`<g class="hat">${R(1,2,14,1,'#3b3b3b')+R(3,-2,10,4,'#3b3b3b')+R(3,0,10,1,'#8b1e2d')}</g>`; }
+  if(L.acc==='straw'){ s+=R(0,3,16,2,'#e8c25a')+R(3,0,10,3,'#f2d27a')+R(3,2,10,1,'#c0392b'); }
+  if(L.acc==='hardhat'){ s+=R(2,0,12,4,'#ffcc00')+R(1,4,14,1,'#e6a800')+R(7,0,2,4,'#e6a800'); }
+  return `<g class="head">${s}</g>`;
+}
+function body(L){
+  let s = R(3,14,10,8,K)+R(4,14,8,7,L.suit);
+  if(L.tie){ s+=R(6,14,4,2,'#fff')+R(7,14,2,5,L.tie); } else { s+=R(6,14,4,2,'#fff')+R(5,17,6,1,'#8f2433'); }
+  s += R(4,22,3,3,'#2b2b3a')+R(9,22,3,3,'#2b2b3a')+R(3,25,4,1,K)+R(9,25,4,1,K);
+  return s;
+}
+function arm(L,cls,x,item=''){
+  return `<g class="${cls}">${R(x,15,3,6,K)+R(x+1,15,1,5,L.suit)+R(x,21,3,2,L.skin)}${item}</g>`;
+}
+function character(L){
+  let rItem='';
+  if(L.acc==='mic') rItem = R(13,23,3,3,'#555')+R(14,26,1,4,'#222');
+  if(L.move==='tea') rItem = R(12,22,4,3,'#fff')+R(12,22,4,1,'#a0522d')+R(16,23,1,1,'#fff')+R(11,25,6,1,'#ddd');
+  if(L.move==='flag') rItem = R(14,21,1,11,'#8b5a2b')+R(15,26,7,5,'#3a8f3a')+R(17,27,3,3,'#ffd23f');
+  if(L.move==='fan') rItem = R(11,23,6,5,'#f5e6c8')+R(11,23,6,1,K)+R(13,24,1,4,'#c9a227')+R(14,28,1,2,'#8b5a2b');
+  if(L.move==='golf') rItem = R(14,22,1,9,'#aaa')+R(14,31,3,1,'#333');
+  if(L.move==='torch') rItem = R(14,22,1,6,'#c9a227')+`<g class="flame">${R(13,28,3,3,'#ff8c00')+R(14,30,1,2,'#ffd23f')}</g>`;
+  const armRx = 13;
+  return `<g class="char">${arm(L,'armL',0)}${body(L)}${head(L)}${arm(L,'armR',armRx,rItem)}</g>`;
+}
+function bike(){
+  const wheel=(cx)=>`<g class="wheel">${R(cx-4,30,8,1,K)+R(cx-4,37,8,1,K)+R(cx-5,31,1,6,K)+R(cx+4,31,1,6,K)+R(cx-1,31,1,6,'#777')+R(cx-4,33,8,1,'#777')}</g>`;
+  return wheel(-2)+wheel(20)+R(-2,27,22,2,'#d64545')+R(8,22,2,6,'#d64545')+R(5,22,6,1,K)+R(18,20,2,8,'#d64545')+R(17,19,4,1,K);
+}
+function dozer(){return `<g class="prop" transform="translate(20,14)">${R(0,4,14,8,'#ffcc00')+R(0,4,14,1,K)+R(2,0,6,4,'#e6a800')+R(3,1,4,2,'#9fd8ff')+R(-4,2,3,12,'#888')+R(0,12,14,3,K)+R(1,13,2,1,'#777')+R(6,13,2,1,'#777')+R(11,13,2,1,'#777')}</g>`}
+function dog(){return `<g class="dog" transform="translate(-22,16)">${R(0,2,10,5,'#222')+R(8,0,4,4,'#222')+R(10,1,1,1,'#fff')+R(12,2,1,1,'#ff9aa8')+R(0,7,2,3,'#222')+R(7,7,2,3,'#222')+R(-2,1,2,2,'#222')+R(5,3,3,2,'#d64545')}</g>`+R(-10,18,10,1,'#d64545')}
+function notes(){return `<g transform="translate(18,0)"><text class="note" x="0" y="8" font-size="7" fill="#ff5d8f">♪</text><text class="note" x="4" y="10" font-size="7" fill="#3a6df0">♫</text><text class="note" x="-2" y="6" font-size="7" fill="#ff8c00">♪</text></g>`}
+function fizz(){return `<g transform="translate(14,-2)">${R(0,0,1,1,'#bff')}</g><g>${R(26,8,1,1,'#7fe')}</g>`.replace(/<rect/g,'<rect class="bubble-p"')+`<g>${R(28,12,1,1,'#7fe','bubble-p')}${R(27,6,1,1,'#bff','bubble-p')}${R(29,10,1,1,'#fff','bubble-p')}</g>`}
+
+function sceneSVG(id){
+  const L=LOOK[id];
+  let inner = character(L), extra='', riderY=4;
+  if(L.move==='bike'){ inner = `<g transform="translate(0,-3)">${character(L)}</g>`+bike(); riderY=0; }
+  if(L.move==='dozer') extra = dozer();
+  if(L.move==='dog') extra = dog();
+  if(L.move==='sing') extra = notes();
+  if(L.move==='dove') extra = `<g class="dovebird">${R(0,2,5,2,'#fff')+R(1,0,2,2,'#fff')+R(4,1,2,1,'#fff')+R(5,2,1,1,'#ffb000')+R(4,1,1,1,K)+R(-1,3,2,1,'#ddd')}</g>`;
+  if(L.move==='golf') extra = R(28,24,2,2,'#fff');
+  if(L.move==='fist') extra = fizz()+`<text class="bubble-p" x="18" y="2" font-size="5" fill="#d64545">일 하자!</text>`;
+  // viewBox 60x40, character is 16x26 at center
+  return `<svg class="scene" viewBox="-22 -6 60 40" aria-hidden="true"><g class="rider" transform="translate(0,${riderY})">${inner}${extra}</g></svg>`;
+}
+
+/* ---------- photo pixelator (Wikipedia REST, CORS ok) ---------- */
+const photoCache={};
+async function getPhotoURL(id){
+  if(photoCache[id]) return photoCache[id];
+  const r = await fetch('https://ko.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(LOOK[id].wiki));
+  const j = await r.json();
+  const url = (j.originalimage||j.thumbnail||{}).source;
+  if(!url) throw new Error('no image');
+  return photoCache[id]=url.replace(/\/\d+px-/, '/320px-');
+}
+function pixelate(img, canvas, block){
+  const W=Math.round(240/block), H=Math.round(320/block);
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const ir=img.naturalWidth/img.naturalHeight, cr=W/H;
+  let sw,sh,sx,sy;
+  if(ir>cr){sh=img.naturalHeight;sw=sh*cr;sx=(img.naturalWidth-sw)/2;sy=0}else{sw=img.naturalWidth;sh=sw/cr;sx=0;sy=0}
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+  try{
+    const d=ctx.getImageData(0,0,W,H),p=d.data,q=36;
+    for(let i=0;i<p.length;i+=4){p[i]=Math.round(p[i]/q)*q;p[i+1]=Math.round(p[i+1]/q)*q;p[i+2]=Math.round(p[i+2]/q)*q}
+    ctx.putImageData(d,0,0);
+  }catch(e){}
+}
+async function loadPhoto(id, box){
+  box.innerHTML='<div style="color:#fff;font-size:12px" class="blink">사진 로딩중...</div>';
+  try{
+    const url=await getPhotoURL(id);
+    const img=new Image(); img.crossOrigin='anonymous'; img.src=url;
+    await img.decode();
+    const c=document.createElement('canvas');
+    let block=6; pixelate(img,c,block);
+    box.innerHTML=''; box.appendChild(c);
+    box.insertAdjacentHTML('beforeend','<div class="scan"></div><div class="cap">📷 위키미디어 공용</div>');
+    const t=document.getElementById('pxToggle');
+    if(t){t.onclick=()=>{block=block===6?3:block===3?1:6;pixelate(img,c,block);t.textContent='픽셀 크기: '+(block===1?'원본':block===3?'작게':'크게')}}
+  }catch(e){
+    box.innerHTML=`<div style="color:#fff;font-size:12px;padding:12px;text-align:center">사진을 불러오지 못했어요<br>(인터넷 연결 확인)</div>`;
+  }
+}
+
+/* ---------- voice (Web Speech TTS) ---------- */
+let current=null;
+function koVoice(){const v=speechSynthesis.getVoices();return v.find(x=>/ko/i.test(x.lang)&&/Google|Neural|Natural/i.test(x.name))||v.find(x=>/ko/i.test(x.lang))}
+if('speechSynthesis' in window) speechSynthesis.onvoiceschanged=()=>{};
+function stopVoice(){
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  document.querySelectorAll('.btn.voice.playing').forEach(b=>{b.classList.remove('playing');b.textContent='🔊 목소리로 듣기'});
+  document.querySelectorAll('.talking').forEach(e=>e.classList.remove('talking'));
+  current=null;
+}
+function speak(id, btn){
+  if(!('speechSynthesis' in window)){alert('이 브라우저는 음성 재생을 지원하지 않아요');return}
+  if(current===id){stopVoice();return}
+  stopVoice();
+  const P=DATA[id], L=LOOK[id];
+  const u=new SpeechSynthesisUtterance(P.narration);
+  u.lang='ko-KR'; const v=koVoice(); if(v) u.voice=v;
+  u.pitch=L.voice.pitch; u.rate=L.voice.rate;
+  current=id;
+  document.querySelectorAll(`[data-voice="${id}"]`).forEach(b=>{b.classList.add('playing');b.textContent='🔊 재생 중'});
+  document.querySelectorAll(`[data-stage="${id}"]`).forEach(s=>s.classList.add('talking'));
+  const bub=document.getElementById('bubble-'+id);
+  u.onboundary=(e)=>{ if(bub) bub.innerHTML='<b>'+P.narration.slice(0,e.charIndex)+'</b>'+P.narration.slice(e.charIndex) };
+  u.onend=u.onerror=()=>{ if(current===id) stopVoice(); if(bub) bub.textContent=P.narration };
+  speechSynthesis.speak(u);
+}
+
+/* ---------- render ---------- */
+const DATA = Object.fromEntries((window.PRESIDENTS||[]).map(p=>[p.id,p]));
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function stage(id){
+  const L=LOOK[id];
+  return `<div class="stage m-${L.move}" data-stage="${id}" style="background:${L.bg}"><div class="cloud"></div><div class="cloud" style="animation-delay:-9s;top:44px"></div>${sceneSVG(id)}<div class="ground"></div></div>`;
+}
+function card(id){
+  const P=DATA[id], L=LOOK[id]; if(!P) return '';
+  const now = id==='ljm';
+  return `<article class="card px" tabindex="0" data-id="${id}">
+    <span class="badge ${now?'now':''}">${esc(P.order)}${now?' · 현직':''}</span>
+    ${stage(id)}
+    <div class="name">${esc(P.name)} <small style="font-size:14px;color:var(--muted)">${esc(P.hanja)}</small></div>
+    <div class="meta">${esc(P.term)} · ${esc(P.party)}</div>
+    <div class="move">✨ 시그니처: ${esc(L.moveLabel)}</div>
+    <div class="row">
+      <button class="btn voice" data-voice="${id}">🔊 목소리로 듣기</button>
+      <button class="btn more">📖 자세히</button>
+    </div>
+  </article>`;
+}
+function detail(id){
+  const P=DATA[id], L=LOOK[id];
+  return `<button class="btn close" aria-label="닫기">✕</button>
+  <div class="detail">
+    <div>
+      <div class="photoBox" id="photoBox"></div>
+      <button class="btn pxToggle" id="pxToggle">픽셀 크기: 크게</button>
+      <div style="margin-top:14px">${stage(id)}</div>
+    </div>
+    <div>
+      <span class="badge ${id==='ljm'?'now':''}" style="position:static;display:inline-block">${esc(P.order)} 대통령${id==='ljm'?' · 현직':''}</span>
+      <div class="name" style="font-size:32px">${esc(P.name)} <small style="font-size:16px;color:var(--muted)">${esc(P.hanja)}</small></div>
+      <dl class="info">
+        <dt>임기</dt><dd>${esc(P.term)}</dd>
+        <dt>출생</dt><dd>${esc(P.born)}</dd>
+        <dt>정당</dt><dd>${esc(P.party)}</dd>
+        <dt>별칭</dt><dd>${esc(P.nickname)}</dd>
+      </dl>
+      <div class="row"><button class="btn voice" data-voice="${id}">🔊 목소리로 듣기</button></div>
+      <div class="bubble" id="bubble-${id}">${esc(P.narration)}</div>
+      <h3>한눈에 보기</h3><p class="summary">${esc(P.summary)}</p>
+      <h3>주요 발자취</h3><ul class="pix">${P.keyEvents.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>
+      <h3>깨알 TMI</h3><ul class="pix">${P.trivia.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>
+      <h3>시그니처 무브</h3><p class="summary">${esc(L.moveLabel)}</p>
+    </div>
+  </div>`;
+}
+const modal=document.getElementById('modal'), sheet=document.getElementById('sheet');
+function openDetail(id){
+  sheet.innerHTML=detail(id); modal.classList.add('open');
+  loadPhoto(id, document.getElementById('photoBox'));
+  sheet.querySelector('.close').focus();
+}
+function closeDetail(){modal.classList.remove('open'); stopVoice()}
+document.addEventListener('click',e=>{
+  const v=e.target.closest('.btn.voice'); if(v){e.stopPropagation(); speak(v.dataset.voice,v); return}
+  if(e.target.closest('.close')||e.target===modal){closeDetail();return}
+  const c=e.target.closest('.card'); if(c) openDetail(c.dataset.id);
+  const t=e.target.closest('.tl'); if(t) openDetail(t.dataset.id);
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeDetail();
+  if(e.key==='Enter'&&e.target.classList.contains('card')) openDetail(e.target.dataset.id);
+});
+document.getElementById('grid').innerHTML=ORDER.map(card).join('');
+document.getElementById('timeline').innerHTML=ORDER.filter(id=>DATA[id]).map(id=>`<div class="tl" data-id="${id}"><b>${esc(DATA[id].order)}</b>${esc(DATA[id].name)}<br>${esc(DATA[id].term)}</div>`).join('<div style="align-self:center;color:#ffd23f">▶</div>');
+</script>
+</body>
+</html>
